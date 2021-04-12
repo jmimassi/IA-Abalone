@@ -17,18 +17,21 @@ def inscription(port):
 	recu = jsonNetwork.receiveJSON(s)
 	reponse = str(recu['response'])
 	print(reponse)
-	Timer(1,listenForRequests).start()
+
 
 def processRequest(client,address):
 	'''
 		Route request to request handlers
 	'''
+	print('a')
 	print('request from')
 	try:
 		request = jsonNetwork.receiveJSON(client)
 		
 		if request['request'] == 'pong':
+			print('ok')
 			jsonNetwork.sendJSON(client,{'response':'pong'})
+			
 		else:
 			raise ValueError('Unknown request \'{}\''.format(request['request']))
 	except :
@@ -47,12 +50,9 @@ def listenForRequests(port = 3000):
 			s.listen()
 			print('Listen to', port)
 			while running:
-				try:
-					client, address = s.accept()
-					with client:
-						processRequest(client, address)
-				except socket.timeout:
-					pass
+				client, address = s.accept()
+				with client:
+					processRequest(client, address)
 	
 	listenThread = Thread(target=processClients, daemon=True)
 	listenThread.start()
@@ -73,3 +73,4 @@ def listenForRequests(port = 3000):
 
 
 inscription(3100)
+listenForRequests()
