@@ -8,7 +8,7 @@ import jsonNetwork
 s = socket.socket()
 s.connect(('127.0.0.1',3000))
 
-def inscription(port):
+def inscription(port = 3100):
 	jsonNetwork.sendJSON(s,{
 	"request": "subscribe",
 	"port": port,
