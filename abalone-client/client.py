@@ -74,7 +74,7 @@ def listenForRequests(port = 3100 ):
 
 if __name__ == '__main__':
 	args = sys.argv[1:]
-	port = 3000
+	port = 3100
 	for arg in args:
 		port = int(arg)
 	inscription(port)
