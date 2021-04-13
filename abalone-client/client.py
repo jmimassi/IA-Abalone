@@ -17,7 +17,9 @@ def inscription(port):
 	recu = jsonNetwork.receiveJSON(s)
 	reponse = str(recu['response'])
 	print(reponse)
-	Thread(target=pong).start()
+
+	
+
 
 
 
@@ -31,7 +33,7 @@ def processRequest(client,address):
 	
 	request = jsonNetwork.receiveJSON(client)
 		
-	if request['request'] == 'pong':
+	if request['request'] == 'ping':
 		print('ok')
 		jsonNetwork.sendJSON(client,{'response':'pong'})
 			
@@ -39,7 +41,7 @@ def processRequest(client,address):
 		raise ValueError('Unknown request \'{}\''.format(request['request']))
 
 
-def listenForRequests(port = 3001):
+def listenForRequests(port):
 	'''
 		Start thread to listen to requests.
 		Returns a function to stop the thread.
@@ -52,37 +54,40 @@ def listenForRequests(port = 3001):
 			s.listen()
 			print('Listen to', port)
 			while running:
-				client, address = s.accept()
-				with client:
-					processRequest(client, address)
+				try:
+					client, address = s.accept()
+					with client:
+						processRequest(client, address)
+				except socket.timeout:
+					pass
 	
 	listenThread = Thread(target=processClients, daemon=True)
 	listenThread.start()
+	listenThread.join()
 
-	def stop():
-		nonlocal running
-		running = False
-		listenThread.join()
-
-	return stop
 
 
 
 
 def pong():
 	print('a')
-	demande = jsonNetwork.receiveJSON(s)
+	demande = jsonNetwork.receiveJSON(s,10)
 	print('reveived')
 	print(str(demande['response']))
 	if demande['request'] == 'ping':
 		jsonNetwork.sendJSON(s,{'response':'pong'})
 		print('ahah')
-	else : 
-		print('None')
+
+
+
+
+
 
 
 
 
 inscription(3100)
+listenForRequests(3100)
+
 
 
