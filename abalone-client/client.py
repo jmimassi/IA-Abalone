@@ -2,6 +2,7 @@ import socket
 import json
 import time
 from threading import Thread, Timer
+import sys
 
 import jsonNetwork 
 s = socket.socket()
@@ -41,7 +42,7 @@ def processRequest(client,address):
 		raise ValueError('Unknown request \'{}\''.format(request['request']))
 
 
-def listenForRequests(port):
+def listenForRequests(port = 3100 ):
 	'''
 		Start thread to listen to requests.
 		Returns a function to stop the thread.
@@ -69,25 +70,18 @@ def listenForRequests(port):
 
 
 
-def pong():
-	print('a')
-	demande = jsonNetwork.receiveJSON(s,10)
-	print('reveived')
-	print(str(demande['response']))
-	if demande['request'] == 'ping':
-		jsonNetwork.sendJSON(s,{'response':'pong'})
-		print('ahah')
+
+
+if __name__ == '__main__':
+	args = sys.argv[1:]
+	port = 3000
+	for arg in args:
+		port = int(arg)
+	inscription(port)
+	listenForRequests(port)
 
 
 
-
-
-
-
-
-
-inscription(3100)
-listenForRequests(3100)
 
 
 
