@@ -37,6 +37,17 @@ def processRequest(client,address):
 	if request['request'] == 'ping':
 		print('ok')
 		jsonNetwork.sendJSON(client,{'response':'pong'})
+	elif request['request'] == 'play' :
+		print('moving')
+		jsonNetwork.sendJSON(client,{
+		"response": "move",
+		"move": {
+		"marbles": [[6, 4],],
+		"direction": "NE"
+		},
+		"message": "Fun message"
+		}
+		)
 			
 	else:
 		raise ValueError('Unknown request \'{}\''.format(request['request']))
