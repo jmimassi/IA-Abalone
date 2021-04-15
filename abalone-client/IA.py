@@ -375,17 +375,25 @@ blancs, noirs = posofmarbles(state['board'])
 
 def allMarbleTrains(board):
 	blancs, noirs = posofmarbles(board)
+	trainsblancst2 = []
 	trainsblancs = []
 	for elem in blancs :
 		i = 0
 		while i < len(blancs): 
 			if computeAlignement([elem,blancs[i]]) != None and elem != blancs[i]:
-				trainsblancs.append([elem,blancs[i]])
+				trainsblancst2.append([elem,blancs[i]])
 			i += 1
-	return trainsblancs
+	for elem in trainsblancst2 :
+		j = 0 
+		while j < len(blancs): 
+			if computeAlignement(elem+[blancs[j]]) != None and elem != blancs[j]:
+				trainsblancs.append(elem+[blancs[j]])
+			j += 1
+
+	return trainsblancs + trainsblancst2
 
 
-# print(allMarbleTrains(state['board']))
+print(allMarbleTrains(state['board']))
 
 
 
@@ -446,4 +454,4 @@ def possmoves2(state,marble):
 	return possiblemoves
 
 
-print(possmoves2(state,[(1,2),(2,2)]))
+# print(possmoves2(state,[(1,2),(2,2)]))
