@@ -324,6 +324,8 @@ state = {
 	}
 
 
+# print(possmoves(state,(1,0)))
+
 def posofmarbles(board):
 	whites = []
 	blacks = []
@@ -364,10 +366,10 @@ def estimateBoard(board):
 
 blancs, noirs = posofmarbles(state['board'])
 
-
+# print(noirs)
 # for elem in noirs :
 # 	print(possmoves(state,elem))
-# 	pass
+
 
 
 # print(estimateBoard(state['board']))
@@ -393,7 +395,7 @@ def allMarbleTrains(board):
 	return trainsblancs + trainsblancst2
 
 
-print(allMarbleTrains(state['board']))
+# print(allMarbleTrains(state['board']))
 
 
 
@@ -403,35 +405,55 @@ def moveMarblesTrain2(state, marbles, direction):
 	else:
 		marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
 	color = getColor(state, marbles[0])
-
+	li1, ci1 = marbles[0]
+	li2, ci2 = marbles[1]
+	ld1, cd1 = addDirection(marbles[0],direction)
+	ld2, cd2 = addDirection(marbles[1],direction)
+	try :
+		li3, ci3 = marbles[2]
+		ld3, cd3 = addDirection(marbles[2],direction)
+	except : 
+		pass
 	try : 
-		dest1 = getStatus(state,set(addDirection(marbles[0],direction)))
-		dest2 = getStatus(state,set(addDirection(marbles[1],direction)))
-		dest3 = getStatus(state,set(addDirection(marbles[2],direction)))
-	except :
+		dest1 = getStatus(state,list(addDirection(marbles[0],direction)))
+		dest2 = getStatus(state,list(addDirection(marbles[1],direction)))
+	except game.BadMove :
 		dest1 = 'X'
-
+		dest2 = 'X'
+	
 	if dest1 == 'X':
 		return state['board'], False
-		print('a')
-	if dest2 == 'X':
-		print('c')
+	if  dest1 == 'W' or dest1 == 'B'  :
 		return state['board'], False
+	if dest2 == 'X':
+		return state['board'], False
+	print(dest1)
+	if  dest2 == 'W' and (li1,ci1) != (ld2,cd2) :
+		return state['board'], False
+	if  dest2 == 'B' and (li1,ci1) != (ld2,cd2)  :
+		return state['board'], False
+	try :
+		if  dest3 == 'W' and (li2,ci2) != (ld3,cd3) :
+			return state['board'], False
+		if  dest3 == 'B' and (li2,ci2) != (ld3,cd3)  :
+			return state['board'], False
+	except : 
+		pass
+	
+
 
 	pos = addDirection(marbles[0], direction)
 	toPush = []
 	while not isFree(state, pos):
 		if getColor(state, pos) == color:
-			print('a')
 			return state['board'], False
 		toPush.append(pos)
 		pos = addDirection(pos, direction)
 
 	if len(toPush) >= len(marbles):
-		print('b')
 		return state['board'], False
 
-	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
+	# state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
 
 	return state, True
 
@@ -454,4 +476,4 @@ def possmoves2(state,marble):
 	return possiblemoves
 
 
-# print(possmoves2(state,[(1,2),(2,2)]))
+print(possmoves2(state,[(2, 2), (1, 2), (0, 2)]))
