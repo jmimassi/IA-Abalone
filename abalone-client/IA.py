@@ -396,16 +396,31 @@ def moveMarblesTrain2(state, marbles, direction):
 		marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
 	color = getColor(state, marbles[0])
 
+	try : 
+		dest1 = getStatus(state,set(addDirection(marbles[0],direction)))
+		dest2 = getStatus(state,set(addDirection(marbles[1],direction)))
+		dest3 = getStatus(state,set(addDirection(marbles[2],direction)))
+	except :
+		dest1 = 'X'
+
+	if dest1 == 'X':
+		return state['board'], False
+		print('a')
+	if dest2 == 'X':
+		print('c')
+		return state['board'], False
 
 	pos = addDirection(marbles[0], direction)
 	toPush = []
 	while not isFree(state, pos):
 		if getColor(state, pos) == color:
+			print('a')
 			return state['board'], False
 		toPush.append(pos)
 		pos = addDirection(pos, direction)
 
 	if len(toPush) >= len(marbles):
+		print('b')
 		return state['board'], False
 
 	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
@@ -414,4 +429,21 @@ def moveMarblesTrain2(state, marbles, direction):
 
 
 
-print(possmoves2(state,[(0,0),(0,1)]))
+
+
+def possmoves2(state,marble):
+	possiblemoves = []
+	dir = ['NE','SW','NW','SE','E','W']
+	i = 0
+	while i < 6 :
+		board, poss = moveMarblesTrain2(state,marble,dir[i])
+		print(poss)
+		if poss == True :
+				possiblemoves.append(dir[i])
+				i += 1
+		else :
+			i+= 1
+	return possiblemoves
+
+
+print(possmoves2(state,[(1,2),(2,2)]))
