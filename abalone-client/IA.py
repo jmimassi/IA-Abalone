@@ -1,6 +1,7 @@
 import game
 
 import copy
+import Tree 
 
 symbols = ['B', 'W']
 
@@ -323,16 +324,49 @@ state = {
 	}
 
 
-print(possmoves(state,[7,3]))
+def posofmarbles(board):
+	whites = []
+	blacks = []
+	i = 0
+	lines = 0
+	for line in board :
+		i = 0
+		for elem in line :
+			if elem == 'W':
+				whites.append((lines,i))
+			if elem == 'B':
+				blacks.append((lines,i))
+			else : 
+				pass
+			i += 1
+		lines += 1
+	return whites, blacks
 
-print(possmoves(state,[6,4]))
+def estimateBoard(board):
+	whites = 0
+	blacks = 0
+	i = 0
+	lines = 0
+	for line in board :
+		i = 0
+		for elem in line :
+			if elem == 'W':
+				whites += 1
+			if elem == 'B':
+				blacks += 1
+			else : 
+				pass
+			i += 1
+		lines += 1
+	return whites, blacks
 
-print(possmoves(state,(0,0)))
+blancs, noirs = posofmarbles(state['board'])
 
 
-def forAllWhites(board):
-	pos = []
-	for element in board :
-		
+# for elem in noirs :
+# 	print(possmoves(state,elem))
+# 	pass
 
-	
+
+# print(estimateBoard(state['board']))
+
