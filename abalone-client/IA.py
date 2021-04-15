@@ -342,6 +342,8 @@ def posofmarbles(board):
 		lines += 1
 	return whites, blacks
 
+# print(posofmarbles(state['board']))
+
 def estimateBoard(board):
 	whites = 0
 	blacks = 0
@@ -370,3 +372,46 @@ blancs, noirs = posofmarbles(state['board'])
 
 # print(estimateBoard(state['board']))
 
+
+def allMarbleTrains(board):
+	blancs, noirs = posofmarbles(board)
+	trainsblancs = []
+	for elem in blancs :
+		i = 0
+		while i < len(blancs): 
+			if computeAlignement([elem,blancs[i]]) != None and elem != blancs[i]:
+				trainsblancs.append([elem,blancs[i]])
+			i += 1
+	return trainsblancs
+
+
+# print(allMarbleTrains(state['board']))
+
+
+
+def moveMarblesTrain2(state, marbles, direction):
+	if direction in ['E', 'SE', 'SW']:
+		marbles = sorted(marbles, key=lambda L: -(L[0]*9+L[1]))
+	else:
+		marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
+	color = getColor(state, marbles[0])
+
+
+	pos = addDirection(marbles[0], direction)
+	toPush = []
+	while not isFree(state, pos):
+		if getColor(state, pos) == color:
+			return state['board'], False
+		toPush.append(pos)
+		pos = addDirection(pos, direction)
+
+	if len(toPush) >= len(marbles):
+		return state['board'], False
+
+	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
+
+	return state, True
+
+
+
+print(possmoves2(state,[(0,0),(0,1)]))
