@@ -212,17 +212,17 @@ def Abalone(players):
 
 Game = Abalone
 
-if __name__=='__main__':
-	def show(state):
-		print('\n'.join([' '.join(line) for line in state['board']]))
-		print()
+#if __name__=='__main__':
+	#def show(state):
+		#print('\n'.join([' '.join(line) for line in state['board']]))
+		#print()
 
-	state, next = Abalone(['LUR', 'LRG'])
+	#state, next = Abalone(['LUR', 'LRG'])
 
-	state['board'][3][3] = 'B'
-	state['board'][4][3] = 'W'
+	#state['board'][3][3] = 'B'
+	#state['board'][4][3] = 'W'
 
-	show(state)
+	#show(state)
 
 	 #state = moveMarblesTrain(state, [(0, 3), (1, 3), (2, 3)], 'SW')
 	#show(state)
@@ -234,16 +234,74 @@ if __name__=='__main__':
 	#show(state)
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+def moveOneMarble2(state, pos, direction):
+	li, ci = pos
+	ld, cd = addDirection(pos, direction)
+	try :
+		color = getColor(state, pos)
+	except : 
+		color = 'None'
+	try:
+		destStatus = getStatus(state, (ld, cd))
+	except:
+		destStatus = 'X'
+	
+	if color != 'W' and color != 'B':
+		return state['board'], False
+	if destStatus == 'W' or destStatus == 'B':
+		return state['board'], False
+	
+	res = copy.copy(state)
+	res['board'] = copy.copy(res['board'])
+	res['board'][li] = copy.copy(res['board'][li])
+	res['board'][li][ci] = 'E'
+
+	if destStatus == 'X':
+		return state['board'], False
+
+	if destStatus == 'E':
+		res['board'][ld] = copy.copy(res['board'][ld])
+		res['board'][ld][cd] = color
+
+	return res, True
+
+
+
+
+
+
+
 def possmoves(state,marble):
 	possiblemoves = []
-	dir = ['SE','SW','NW','SE','E','W']
+	dir = ['NE','SW','NW','SE','E','W']
 	i = 0
-	while i < 5 :
-		try :
-			moveOneMarble(state,marble,dir[i])
-			possiblemoves += dir[i]
-		except : 
-			pass
+	while i < 6 :
+		board, poss = moveOneMarble2(state,marble,dir[i])
+		if poss == True :
+				possiblemoves.append(dir[i])
+				i += 1
+		else :
+			i+= 1
 	return possiblemoves
 
 
@@ -263,3 +321,18 @@ state = {
 			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
 		]
 	}
+
+
+print(possmoves(state,[7,3]))
+
+print(possmoves(state,[6,4]))
+
+print(possmoves(state,(0,0)))
+
+
+def forAllWhites(board):
+	pos = []
+	for element in board :
+		
+
+	
