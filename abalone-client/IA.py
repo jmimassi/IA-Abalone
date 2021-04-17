@@ -1,5 +1,5 @@
 import game
-
+import random
 import copy
 import Tree 
 
@@ -335,9 +335,9 @@ def posofmarbles(board):
 		i = 0
 		for elem in line :
 			if elem == 'W':
-				whites.append((lines,i))
+				whites.append([lines,i])
 			if elem == 'B':
-				blacks.append((lines,i))
+				blacks.append([lines,i])
 			else : 
 				pass
 			i += 1
@@ -379,6 +379,8 @@ def allMarbleTrains(board):
 	blancs, noirs = posofmarbles(board)
 	trainsblancst2 = []
 	trainsblancs = []
+	trainsnoirst2 = []
+	trainsnoirs = []
 	for elem in blancs :
 		i = 0
 		while i < len(blancs): 
@@ -392,7 +394,20 @@ def allMarbleTrains(board):
 				trainsblancs.append(elem+[blancs[j]])
 			j += 1
 
-	return trainsblancs + trainsblancst2
+	for elem in noirs :
+		i = 0
+		while i < len(noirs): 
+			if computeAlignement([elem,noirs[i]]) != None and elem != noirs[i]:
+				trainsnoirst2.append([elem,noirs[i]])
+			i += 1
+	for elem in trainsnoirst2 :
+		j = 0 
+		while j < len(noirs): 
+			if computeAlignement(elem+[noirs[j]]) != None and elem != noirs[j]:
+				trainsnoirs.append(elem+[noirs[j]])
+			j += 1
+
+	return trainsblancs + trainsblancst2, trainsnoirs + trainsnoirst2
 
 
 # print(allMarbleTrains(state['board']))
@@ -417,17 +432,21 @@ def moveMarblesTrain2(state, marbles, direction):
 	try : 
 		dest1 = getStatus(state,list(addDirection(marbles[0],direction)))
 		dest2 = getStatus(state,list(addDirection(marbles[1],direction)))
+		dest3 = getStatus(state,list(addDirection(marbles[2],direction)))
 	except game.BadMove :
 		dest1 = 'X'
 		dest2 = 'X'
+		dest3 = 'X'
+	except IndexError :
+		pass
 	
 	if dest1 == 'X':
 		return state['board'], False
-	if  dest1 == 'W' or dest1 == 'B'  :
+	if  dest1 == 'W' or dest1 == 'B' :
 		return state['board'], False
 	if dest2 == 'X':
 		return state['board'], False
-	print(dest1)
+	# print(dest1)
 	if  dest2 == 'W' and (li1,ci1) != (ld2,cd2) :
 		return state['board'], False
 	if  dest2 == 'B' and (li1,ci1) != (ld2,cd2)  :
@@ -452,8 +471,8 @@ def moveMarblesTrain2(state, marbles, direction):
 
 	if len(toPush) >= len(marbles):
 		return state['board'], False
-
-	# state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
+	
+	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
 
 	return state, True
 
@@ -467,7 +486,7 @@ def possmoves2(state,marble):
 	i = 0
 	while i < 6 :
 		board, poss = moveMarblesTrain2(state,marble,dir[i])
-		print(poss)
+		# print(poss)
 		if poss == True :
 				possiblemoves.append(dir[i])
 				i += 1
@@ -475,5 +494,66 @@ def possmoves2(state,marble):
 			i+= 1
 	return possiblemoves
 
+# print(possmoves2(state,[(1,1),(2,2)]))
 
-print(possmoves2(state,[(2, 2), (1, 2), (0, 2)]))
+def allWhiteMoves(state):
+	white, black = allMarbleTrains(state['board'])
+	white2, black2 = posofmarbles(state['board'])
+	allWmoves = []
+	for elem in white2 :
+		allWmoves.append([[elem,],possmoves(state,elem)])
+	for elem in white :
+		allWmoves.append([elem,possmoves2(state,elem)])
+	return allWmoves
+
+def allBlackMoves(state):
+	white, black = allMarbleTrains(state['board'])
+	white2, black2 = posofmarbles(state['board'])
+	allBmoves = []
+	for elem in black2 :
+		allBmoves.append([[elem,],possmoves(state,elem)])
+	for elem in black :
+		allBmoves.append([elem,possmoves2(state,elem)])
+	return allBmoves
+
+
+def randomWhiteMove(state) :
+	moves = allWhiteMoves(state)
+	isAmove = False
+	while isAmove == False :
+		move = random.choice(moves)
+		if move[1] != list():
+			isAmove = True
+
+	return move
+
+def randomBlackMove(state) :
+	moves = allBlackMoves(state)
+	isAmove = False
+	while isAmove == False :
+		move = random.choice(moves)
+		if move[1] != list():
+			isAmove = True
+
+	return move
+
+
+
+print(randomWhiteMove(state))
+print(randomBlackMove(state))
+
+
+# print(allWhiteMoves(state))
+
+
+
+
+def getPlayerColor(state,name = None):
+	if state['players'][0] == name :
+		return 'black'
+	else : 
+		return 'white'
+	
+# print(getPlayerColor(state))
+
+

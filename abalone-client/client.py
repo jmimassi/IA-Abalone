@@ -3,23 +3,31 @@ import json
 import time
 from threading import Thread, Timer
 import sys
-
+import IA
 import jsonNetwork 
+import random
+
+
 s = socket.socket()
 s.connect(('127.0.0.1',3000))
 
-def inscription(port = 3100):
+def inscription(port = 3100, name = "195048,195178"):
 	jsonNetwork.sendJSON(s,{
 	"request": "subscribe",
 	"port": port,
-	"name": "fun_name_for_the_client",
+	"name": name,
 	"matricules": ["12345", "67890"]
 	})
 	recu = jsonNetwork.receiveJSON(s)
 	reponse = str(recu['response'])
 	print(reponse)
 
-	
+
+def getPlayerColor(state,name = None):
+	if state['players'][0] == name :
+		return 'black'
+	else : 
+		return 'white'
 
 
 
@@ -38,12 +46,19 @@ def processRequest(client,address):
 		print('ok')
 		jsonNetwork.sendJSON(client,{'response':'pong'})
 	elif request['request'] == 'play' :
+		state = request['state']
 		print('moving')
+		if getPlayerColor(state,name) == 'black' :
+			move = IA.randomBlackMove(state)
+		else :
+			move = IA.randomWhiteMove(state)
+		print(move[0])
+		print(random.choice(move[1]))
 		jsonNetwork.sendJSON(client,{
 		"response": "move",
 		"move": {
-		"marbles": [[6, 4],],
-		"direction": "NE"
+		"marbles": move[0],
+		"direction": random.choice(move[1])
 		},
 		"message": "Fun message"
 		}
@@ -86,10 +101,15 @@ def listenForRequests(port = 3100 ):
 if __name__ == '__main__':
 	args = sys.argv[1:]
 	port = 3100
+	name = "195048,195178"
 	for arg in args:
-		port = int(arg)
-	inscription(port)
+		if arg.startswith('-name='):
+			name = str(arg[len('-name='):])
+		else : 
+			port = int(arg)
+	inscription(port,name)
 	listenForRequests(port)
+
 
 
 
