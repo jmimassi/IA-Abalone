@@ -53,12 +53,12 @@ def processRequest(client,address):
 		else :
 			move = IA.randomWhiteMove(state)
 		print(move[0])
-		print(random.choice(move[1]))
+		print(move[1])
 		jsonNetwork.sendJSON(client,{
 		"response": "move",
 		"move": {
 		"marbles": move[0],
-		"direction": random.choice(move[1])
+		"direction": move[1]
 		},
 		"message": "Fun message"
 		}

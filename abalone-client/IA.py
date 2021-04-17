@@ -501,9 +501,11 @@ def allWhiteMoves(state):
 	white2, black2 = posofmarbles(state['board'])
 	allWmoves = []
 	for elem in white2 :
-		allWmoves.append([[elem,],possmoves(state,elem)])
+		for dir in possmoves(state,elem) :
+			allWmoves.append([[elem],dir])
 	for elem in white :
-		allWmoves.append([elem,possmoves2(state,elem)])
+		for dirt in possmoves2(state,elem) :
+			allWmoves.append([elem,dirt])
 	return allWmoves
 
 def allBlackMoves(state):
@@ -511,9 +513,11 @@ def allBlackMoves(state):
 	white2, black2 = posofmarbles(state['board'])
 	allBmoves = []
 	for elem in black2 :
-		allBmoves.append([[elem,],possmoves(state,elem)])
+		for dir in possmoves(state,elem) :
+			allBmoves.append([[elem],dir])
 	for elem in black :
-		allBmoves.append([elem,possmoves2(state,elem)])
+		for dirt in possmoves2(state,elem):
+			allBmoves.append([elem,dirt])
 	return allBmoves
 
 
@@ -539,8 +543,8 @@ def randomBlackMove(state) :
 
 
 
-print(randomWhiteMove(state))
-print(randomBlackMove(state))
+# print(randomWhiteMove(state))
+# print(randomBlackMove(state))
 
 
 # print(allWhiteMoves(state))
@@ -557,3 +561,9 @@ def getPlayerColor(state,name = None):
 # print(getPlayerColor(state))
 
 
+
+
+print(allBlackMoves(state))
+
+def TreeBlack(state) : 
+	pass
