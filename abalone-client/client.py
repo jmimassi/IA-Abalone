@@ -52,6 +52,7 @@ def processRequest(client,address):
 			move = IA.randomBlackMove(state)
 		else :
 			move = IA.randomWhiteMove(state)
+		print(state)
 		print(move[0])
 		print(move[1])
 		jsonNetwork.sendJSON(client,{
