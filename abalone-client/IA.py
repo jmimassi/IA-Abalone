@@ -1,7 +1,7 @@
 import game
 import random
 import copy
-
+import time
 
 symbols = ['B', 'W']
 
@@ -132,7 +132,7 @@ def moveMarblesTrain(state, marbles, direction):
 		pos = addDirection(pos, direction)
 
 	if len(toPush) >= len(marbles):
-		raise game.BadMove('you can\'t push {} opponent\'s marbles with {} marbles'.format(len(toPush), len(marbles)))
+		raise game.BadMove('you can\'t push {} opponent\'s marbles with {} marbles {}'.format((toPush), (marbles),(direction)))
 
 	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
 
@@ -311,17 +311,17 @@ def possmoves(state,marble):
 
 
 
-state = {
+state2 = {
 		'players': ['1','2'],
 		'current': 0,
 		'board': [
-			['W', 'W', 'W', 'W', 'W', 'X', 'X', 'X', 'X'],
-			['W', 'W', 'W', 'W', 'W', 'W', 'X', 'X', 'X'],
+			['E', 'E', 'E', 'E', 'E', 'X', 'X', 'X', 'X'],
+			['E', 'W', 'W', 'W', 'W', 'W', 'X', 'X', 'X'],
 			['E', 'E', 'W', 'E', 'E', 'E', 'E', 'X', 'X'],
 			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'X'],
 			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
 			['X', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
-			['X', 'X', 'E', 'B', 'B', 'B', 'W', 'W', 'E'],
+			['X', 'X', 'E', 'E', 'B', 'B', 'B', 'W', 'W'],
 			['X', 'X', 'X', 'B', 'B', 'B', 'B', 'B', 'B'],
 			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
 		]
@@ -350,25 +350,25 @@ def posofmarbles(board):
 
 # print(posofmarbles(state['board']))
 
-def estimateBoard(board):
-	whites = 0
-	blacks = 0
-	i = 0
-	lines = 0
-	for line in board :
-		i = 0
-		for elem in line :
-			if elem == 'W':
-				whites += 1
-			if elem == 'B':
-				blacks += 1
-			else : 
-				pass
-			i += 1
-		lines += 1
-	return int(blacks - whites)
+# def estimateBoard(board):
+# 	whites = 0
+# 	blacks = 0
+# 	i = 0
+# 	lines = 0
+# 	for line in board :
+# 		i = 0
+# 		for elem in line :
+# 			if elem == 'W':
+# 				whites += 1
+# 			if elem == 'B':
+# 				blacks += 1
+# 			else : 
+# 				pass
+# 			i += 1
+# 		lines += 1
+# 	return int(blacks - whites)
 
-blancs, noirs = posofmarbles(state['board'])
+# blancs, noirs = posofmarbles(state['board'])
 
 # print(noirs)
 # for elem in noirs :
@@ -416,8 +416,9 @@ def allMarbleTrains(board):
 	return trainsblancst2 + trainsblancst3, trainsnoirst2 + trainsnoirst3
 
 
-blan , noi = allMarbleTrains(state['board'])
-print(noi)
+# blan , noi = allMarbleTrains(state['board'])
+# for elem in blan :
+# 	print(elem)
 
 
 
@@ -512,24 +513,25 @@ def possmoves2(state,marble):
 # print(possmoves2(state,[(6,3),(6,4),(6,5)]))
 
 def allWhiteMoves(state):
-	white, _ = allMarbleTrains(state['board'])
-	white2, _ = posofmarbles(state['board'])
+	white , _ = allMarbleTrains(state['board'])
+	white2 , _ = posofmarbles(state['board'])
 	allWmoves = []
+	for elem in white :
+		if computeAlignement(elem) in ['E', 'SE', 'SW']:
+			elem = sorted(elem, key=lambda L: -(L[0]*9+L[1]))
+		else:
+			elem = sorted(elem, key=lambda L: L[0]*9+L[1])
+		for dirt in possmoves2(state,elem):
+			allWmoves.append([elem,dirt])
 	for elem in white2 :
 		for dir in possmoves(state,elem) :
 			allWmoves.append([[elem],dir])
-	for elem in white :
-		for dirt in possmoves2(state,elem) :
-			allWmoves.append([elem,dirt])
 	return allWmoves
 
 def allBlackMoves(state):
 	_ , black = allMarbleTrains(state['board'])
 	_ , black2 = posofmarbles(state['board'])
 	allBmoves = []
-	for elem in black2 :
-		for dir in possmoves(state,elem) :
-			allBmoves.append([[elem],dir])
 	for elem in black :
 		if computeAlignement(elem) in ['E', 'SE', 'SW']:
 			elem = sorted(elem, key=lambda L: -(L[0]*9+L[1]))
@@ -537,9 +539,12 @@ def allBlackMoves(state):
 			elem = sorted(elem, key=lambda L: L[0]*9+L[1])
 		for dirt in possmoves2(state,elem):
 			allBmoves.append([elem,dirt])
+	for elem in black2 :
+		for dir in possmoves(state,elem) :
+			allBmoves.append([[elem],dir])
 	return allBmoves
 
-print(allBlackMoves(state))
+# print(allBlackMoves(state))
 
 def randomWhiteMove(state) :
 	moves = allWhiteMoves(state)
@@ -580,10 +585,12 @@ def getPlayerColor(state,name = None):
 	
 # print(getPlayerColor(state))
 
+# for elem in allWhiteMoves(state) :
+# 	print(elem)
 
 
-
-# print(allBlackMoves(state))
+# for elem in (allBlackMoves(state)):
+# 	print(elem)
 
 # def bestBlackMove(state):
 # 	indice = 0
@@ -621,3 +628,75 @@ def getPlayerColor(state,name = None):
 
 # print(moveMarblesTrain(state,[[6, 4], [6, 5], [6, 6]], 'E'))
 # print(estimateBoard(moveMarblesTrain(state,[[6, 4], [6, 5], [6, 6]], 'E')['board']))
+
+def apply(state,move):
+	if len(move[0]) == 1:
+		return moveOneMarble(state,move[0][0],move[1])
+	else : 
+		return moveMarblesTrain(state,move[0],move[1])
+
+def gameOver(state):
+	whites, blacks = posofmarbles(state['board'])
+	if len(whites) <= 8 :
+		return True, 'black'
+	if len(blacks) <= 8 :
+		return True, 'white'
+	else :
+		return False, None
+
+def moves(state,player): 
+	if player == 'black' :
+		return allBlackMoves(state)
+	else : 
+		return allWhiteMoves(state)
+
+def otherplayer(player) : 
+	if player == 'black' : 
+		return 'white'
+	if player == 'white' :
+		return 'black'
+	else :
+		return None
+
+def estimateBoard(state,player):
+	game, winner = gameOver(state)
+	if game == True and winner == player :
+		return 1
+	if game == False :
+		return 0
+	else :
+		return -1
+
+# blancs, noirs = posofmarbles(state['board'])
+
+
+def timeit(fun):
+	def wrapper(*args, **kwargs):
+		start = time.time()
+		res = fun(*args, **kwargs)
+		print('Executed in {}s'.format(time.time() - start))
+		return res
+	return wrapper
+
+
+def negamax(state, player,depht = 3, alpha = float('-inf') , beta = float('inf')):
+	game, winner = gameOver(state)
+	if depht == 0:
+		return -estimateBoard(state,winner), None
+
+	theValue, theMove = float('-inf'), None
+	for move in moves(state,player):
+		successor = apply(state,move)
+		value, _ = negamax(successor, otherplayer(player),depht-1,-beta,-alpha)
+		if value > theValue:
+			theValue, theMove = value, move
+		alpha = max(alpha, theValue)
+		if alpha >= beta:
+			break
+	return -theValue, theMove
+
+@timeit
+def wrapperbis(*args,fun = negamax):
+	return negamax(*args)
+	
+print(wrapperbis(state2,'black'))
