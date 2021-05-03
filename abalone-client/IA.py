@@ -311,21 +311,7 @@ def possmoves(state,marble):
 
 
 
-state2 = {
-		'players': ['1','2'],
-		'current': 0,
-		'board': [
-			['E', 'E', 'E', 'E', 'E', 'X', 'X', 'X', 'X'],
-			['E', 'W', 'W', 'W', 'W', 'W', 'X', 'X', 'X'],
-			['E', 'E', 'W', 'E', 'E', 'E', 'E', 'X', 'X'],
-			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'X'],
-			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
-			['X', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
-			['X', 'X', 'E', 'E', 'B', 'B', 'B', 'W', 'W'],
-			['X', 'X', 'X', 'B', 'B', 'B', 'B', 'B', 'B'],
-			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
-		]
-	}
+
 
 
 # print(possmoves(state,(1,0)))
@@ -413,7 +399,7 @@ def allMarbleTrains(board):
 			j += 1
 
 
-	return trainsblancst2 + trainsblancst3, trainsnoirst2 + trainsnoirst3
+	return trainsblancst3 + trainsblancst2, trainsnoirst3 + trainsnoirst2
 
 
 # blan , noi = allMarbleTrains(state['board'])
@@ -656,7 +642,7 @@ def otherplayer(player) :
 	if player == 'white' :
 		return 'black'
 	else :
-		return None
+		raise IndexError
 
 def estimateBoard(state,player):
 	game, winner = gameOver(state)
@@ -666,7 +652,7 @@ def estimateBoard(state,player):
 		return 0
 	else :
 		return -1
-
+	
 # blancs, noirs = posofmarbles(state['board'])
 
 
@@ -680,9 +666,9 @@ def timeit(fun):
 
 
 def negamax(state, player,depht = 3, alpha = float('-inf') , beta = float('inf')):
-	game, winner = gameOver(state)
-	if depht == 0:
-		return -estimateBoard(state,winner), None
+	game , winner = gameOver(state)
+	if depht == 0 or game:
+		return -estimateBoard(state,player), None
 
 	theValue, theMove = float('-inf'), None
 	for move in moves(state,player):
@@ -699,4 +685,24 @@ def negamax(state, player,depht = 3, alpha = float('-inf') , beta = float('inf')
 def wrapperbis(*args,fun = negamax):
 	return negamax(*args)
 	
+
+state2 = {
+		'players': ['1','2'],
+		'current': 0,
+		'board': [
+			['E', 'E', 'E', 'E', 'E', 'X', 'X', 'X', 'X'],
+			['W', 'W', 'W', 'W', 'W', 'W', 'X', 'X', 'X'],
+			['E', 'E', 'W', 'W', 'E', 'E', 'E', 'X', 'X'],
+			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'X'],
+			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
+			['X', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
+			['X', 'X', 'E', 'E', 'E', 'B', 'B', 'B', 'W'],
+			['X', 'X', 'X', 'B', 'B', 'B', 'B', 'B', 'B'],
+			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
+		]
+	}
+
+
 print(wrapperbis(state2,'black'))
+# for elem in allBlackMoves(state2) : 
+# 	print(elem)
