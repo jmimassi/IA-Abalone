@@ -2,8 +2,10 @@ import game
 import random
 import copy
 import time
-
+from math import sqrt
 symbols = ['B', 'W']
+from collections import defaultdict
+
 
 directions = {
 	'NE': (-1,  0),
@@ -664,27 +666,57 @@ def timeit(fun):
 		return res
 	return wrapper
 
+def heurestic(state,player):
+	white, black = posofmarbles(state['board'])
+	whites = 0
+	blacks = 0
+	if player == 'black':
+		for elem in black :
+			blacks += distancefromcenter(elem)
+		return blacks
+	else : 
+		for elem in white : 
+			whites += distancefromcenter(elem)
+		return whites
 
-def negamax(state, player,depht = 3, alpha = float('-inf') , beta = float('inf')):
-	game , winner = gameOver(state)
-	if depht == 0 or game:
-		return -estimateBoard(state,player), None
+def negamaxfinal(state, player, timeout=2.5):
+	cache = defaultdict(lambda : 0)
+	def cachedNegamaxWithPruningLimitedDepth(state, player,depth = 10, alpha = float('-inf') , beta = float('inf')):
+		game , winner = gameOver(state)
+		if depth == 0 or game:
+			res = -heurestic(state,player), None, game
+		else :
+			theValue, theMove, theOver = float('-inf'), None, True
+			possibilities = [(move, apply(state, move)) for move in moves(state,player)]
+			possibilities.sort(key=lambda poss: cache[tuple(poss[1])])
+			for move, successor in reversed(possibilities):
+				value, _, over = cachedNegamaxWithPruningLimitedDepth(successor,otherplayer(player), depth-1, -beta, -alpha)
+				theOver = theOver and over
+				if value > theValue:
+					theValue, theMove = value, move
+				alpha = max(alpha, theValue)
+				if alpha >= beta:
+					break
+			res = -theValue, theMove, theOver
+		cache[tuple(state)] = res[0]
+		return res
+	value, move = 0, None
+	depth = 1
+	start = time.time()
+	over = False
+	while value > -9 and time.time() - start < timeout and not over:
+		value, move, over = cachedNegamaxWithPruningLimitedDepth(state, player, depth)
+		depth += 1
 
-	theValue, theMove = float('-inf'), None
-	for move in moves(state,player):
-		successor = apply(state,move)
-		value, _ = negamax(successor, otherplayer(player),depht-1,-beta,-alpha)
-		if value > theValue:
-			theValue, theMove = value, move
-		alpha = max(alpha, theValue)
-		if alpha >= beta:
-			break
-	return -theValue, theMove
+	print('depth =', depth)
+	return value, move
 
-@timeit
-def wrapperbis(*args,fun = negamax):
-	return negamax(*args)
-	
+
+def distancefromcenter(pion):
+	li, co = pion
+	return sqrt((li-4)**2+(co-4)**2)
+
+
 
 state2 = {
 		'players': ['1','2'],
@@ -703,6 +735,29 @@ state2 = {
 	}
 
 
-print(wrapperbis(state2,'black'))
+# print(wrapperbis(state2,'black'))
 # for elem in allBlackMoves(state2) : 
 # 	print(elem)
+
+def negamax(state, player,depht = 3, alpha = float('-inf') , beta = float('inf')):
+	game , winner = gameOver(state)
+	if depht == 0 or game:
+		return -heurestic(state,player), None
+
+	theValue, theMove = float('-inf'), None
+	for move in moves(state,player):
+		successor = apply(state,move)
+		value, _ = negamax(successor, otherplayer(player),depht-1,-beta,-alpha)
+		if value > theValue:
+			theValue, theMove = value, move
+		alpha = max(alpha, theValue)
+		if alpha >= beta:
+			break
+	return -theValue, theMove
+
+@timeit
+def wrapperbis(*args,fun = negamax):
+	return negamax(*args)
+	
+
+print(negamaxfinal(state2,'black'))
