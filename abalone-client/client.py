@@ -49,9 +49,9 @@ def processRequest(client,address):
 		state = request['state']
 		print('moving')
 		if getPlayerColor(state,name) == 'black' :
-			_, move = IA.negamax(state,'black')
+			_, move = IA.negamaxfinal(state,'black')
 		else :
-			move = IA.randomWhiteMove(state)
+			_, move = IA.negamaxfinal(state,'white')
 		print(state)
 		print(move[0])
 		print(move[1])
