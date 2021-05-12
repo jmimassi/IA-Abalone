@@ -1,10 +1,100 @@
-import game
+import socket 
+from threading import Thread
+import sys
 import random
 import copy
 import time
 from math import sqrt
 symbols = ['B', 'W']
 from collections import defaultdict
+import socket as s
+import json
+import time
+#################### GAME.PY
+
+
+class GameWin(Exception):
+	def __init__(self, winner, lastState):
+		self.__winner = winner
+		self.__state = lastState
+
+	@property
+	def winner(self):
+		return self.__winner
+
+	@property
+	def state(self):
+		return self.__state
+
+	def __str__(self):
+		return '{} win the game'.format(self.winner)
+
+class BadMove(Exception):
+	pass
+
+class GameDraw(Exception):
+	def __init__(self, lastState):
+		self.__state = lastState
+
+	@property
+	def state(self):
+		return self.__state
+
+class BadGameInit(Exception):
+	pass
+
+
+
+#################### JSON NETWORK
+
+
+class NotAJSONObject(Exception):
+	pass
+
+class Timeout(Exception):
+	pass
+
+def sendJSON(socket, obj):
+	message = json.dumps(obj)
+	if message[0] != '{':
+		raise NotAJSONObject('sendJSON support only JSON Object Type')
+	message = message.encode('utf8')
+	total = 0
+	while total < len(message):
+		sent = socket.send(message[total:])
+		total += sent
+
+def receiveJSON(socket, timeout = 1):
+	finished = False
+	message = ''
+	data = ''
+	start = time.time()
+	while not finished:
+		message += socket.recv(4096).decode('utf8')
+		if len(message) > 0 and message[0] != '{':
+			raise NotAJSONObject('Received message is not a JSON Object')
+		try:
+			data = json.loads(message)
+			finished = True
+		except json.JSONDecodeError:
+			if time.time() - start > timeout:
+				raise Timeout()
+	return data
+
+def fetch(address, data, timeout=1):
+	'''
+		Request response from address. Data is included in the request
+	'''
+	socket = s.socket()
+	socket.connect(address)
+	sendJSON(socket, data)
+	response = receiveJSON(socket, timeout)
+	return response
+
+##################### IA
+
+
+
 
 
 directions = {			#
@@ -29,7 +119,7 @@ def getDirectionName(directionTuple):
 	for dirName in directions:
 		if directionTuple == directions[dirName]:
 			return dirName
-	raise game.BadMove('{} is not a direction'.format(directionTuple))
+	raise BadMove('{} is not a direction'.format(directionTuple))
 
 def computeAlignement(marbles): #sert à determiner la direction d'une train de marbre 
 	marbles = sorted(marbles, key=lambda L: L[0]*9+L[1])
@@ -47,11 +137,11 @@ def checkMarbles(state, move):
 	marbles = move['marbles']
 	color = symbols[state['current']]
 	if not 0 <= len(marbles) < 4:
-		raise game.BadMove('You can only move 1, 2, or 3 marbles')
+		raise BadMove('You can only move 1, 2, or 3 marbles')
 
 	for pos in marbles:
 		if getColor(state, pos) != color:
-			raise game.BadMove('Marble {} is not yours'.format(pos))
+			raise BadMove('Marble {} is not yours'.format(pos))
 		
 def isOnBoard(pos):
 	l, c = pos
@@ -77,9 +167,9 @@ def moveOneMarble(state, pos, direction):
 		destStatus = 'X'
 	
 	if color != 'W' and color != 'B':
-		raise game.BadMove('There is no marble here {}'.format(pos))
+		raise BadMove('There is no marble here {}'.format(pos))
 	if destStatus == 'W' or destStatus == 'B':
-		raise game.BadMove('There is already a marble here {}'.format((ld, cd)))
+		raise BadMove('There is already a marble here {}'.format((ld, cd)))
 	
 	res = copy.copy(state)
 	res['board'] = copy.copy(res['board'])
@@ -99,7 +189,7 @@ def opponent(color):
 
 def getStatus(state, pos):
 	if not isOnBoard(pos):
-		raise game.BadMove('The position {} is outside the board'.format(pos))
+		raise BadMove('The position {} is outside the board'.format(pos))
 	return state['board'][pos[0]][pos[1]]
 
 def isEmpty(state, pos):
@@ -115,7 +205,7 @@ def getColor(state, pos):
 	status = getStatus(state, pos)
 	if status == 'W' or status == 'B':
 		return status
-	raise game.BadMove('There is no marble here {}'.format(pos))
+	raise BadMove('There is no marble here {}'.format(pos))
 
 def moveMarblesTrain(state, marbles, direction):
 	if direction in ['E', 'SE', 'SW']:
@@ -129,12 +219,12 @@ def moveMarblesTrain(state, marbles, direction):
 	toPush = []
 	while not isFree(state, pos):
 		if getColor(state, pos) == color:
-			raise game.BadMove('You can\'t push your own marble')
+			raise BadMove('You can\'t push your own marble')
 		toPush.append(pos)
 		pos = addDirection(pos, direction)
 
 	if len(toPush) >= len(marbles):
-		raise game.BadMove('you can\'t push {} opponent\'s marbles with {} marbles {}'.format((toPush), (marbles),(direction)))
+		raise BadMove('you can\'t push {} opponent\'s marbles with {} marbles {}'.format((toPush), (marbles),(direction)))
 
 	state = moveMarbles(state, list(reversed(toPush)) + marbles, direction)
 
@@ -165,7 +255,7 @@ def isWinning(state):
 
 def Abalone(players):
 	if len(players) != 2:
-		raise game.BadGameInit('Tic Tac Toe must be played by 2 players')
+		raise BadGameInit('Tic Tac Toe must be played by 2 players')
 
 	state = {
 		'players': players,
@@ -185,7 +275,7 @@ def Abalone(players):
 
 	def next(state, move):
 		if move is None:
-			raise game.BadMove('None is not a valid move')
+			raise BadMove('None is not a valid move')
 
 		checkMarbles(state, move)
 		marbles = move['marbles']
@@ -193,7 +283,7 @@ def Abalone(players):
 		if len(marbles) != 0:
 			marblesDir = computeAlignement(marbles)
 			if marblesDir is None and len(marbles) > 1:
-				raise game.BadMove('The marbles you want to move must be aligned')
+				raise BadMove('The marbles you want to move must be aligned')
 
 			if len(marbles) == 1:
 				state = moveOneMarble(state, marbles[0], move['direction'])
@@ -203,7 +293,7 @@ def Abalone(players):
 				state = moveMarbles(state, marbles, move['direction'])
 
 			if isWinning(state):
-				raise game.GameWin(state['current'], state)
+				raise GameWin(state['current'], state)
 		
 		state['current'] = (state['current'] + 1) % 2
 		return state
@@ -346,15 +436,15 @@ def IsMovePossiblebis(state, marbles, direction):	#vérifie si le mouvement du t
 		pass
 	try : 
 		dest2 = getStatus(state,list(addDirection(marbles[1],direction)))
-	except game.BadMove :
+	except BadMove :
 		dest2 = 'X'
 	try : 
 		dest1 = getStatus(state,list(addDirection(marbles[0],direction)))
-	except game.BadMove :
+	except BadMove :
 		dest1 = 'X'
 	try : 
 		dest3 = getStatus(state,list(addDirection(marbles[2],direction)))
-	except game.BadMove :
+	except BadMove :
 		dest3 = 'X'
 	except IndexError :
 		pass
@@ -617,3 +707,126 @@ def wrapperbis(*args,fun = negamaxfinal):	#fonction à but de test pour negamaxf
 
 
 
+################### CLIENT
+
+
+s = socket.socket()
+s.connect(('127.0.0.1',3000))
+
+def inscription(port = 3100, name = "195048,195178"):
+	sendJSON(s,{
+	"request": "subscribe",
+	"port": port,
+	"name": name,
+	"matricules": ["12345", "67890"]
+	})
+	recu = receiveJSON(s)
+	reponse = str(recu['response'])
+	print(reponse)
+
+
+def getPlayerColor(state,name = None):
+	if state['players'][0] == name :
+		return 'black'
+	else : 
+		return 'white'
+
+
+
+
+
+def processRequest(client,address):
+	'''
+		Route request to request handlers
+	'''
+	print('a')
+	print('request from')
+	
+	request = receiveJSON(client)
+		
+	if request['request'] == 'ping':
+		print('ok')
+		sendJSON(client,{'response':'pong'})
+	elif request['request'] == 'play' :
+		state = request['state']
+		print('moving')
+		if getPlayerColor(state,name) == 'black' :
+			_, move = negamaxfinal(state,'black')
+		else :
+			move = randomWhiteMove(state)
+		print(state)
+		print(move[0])
+		print(move[1])
+		sendJSON(client,{
+		"response": "move",
+		"move": {
+		"marbles": move[0],
+		"direction": move[1]
+		},
+		"message": "I am a robot"
+		}
+		)
+			
+	else:
+		raise ValueError('Unknown request \'{}\''.format(request['request']))
+
+
+def listenForRequests(port = 3100 ):
+	'''
+		Start thread to listen to requests.
+		Returns a function to stop the thread.
+	'''
+	running = True
+	def processClients():
+		with socket.socket() as s:
+			s.bind(('0.0.0.0', port))
+			s.settimeout(1)
+			s.listen()
+			print('Listen to', port)
+			while running:
+				try:
+					client, address = s.accept()
+					with client:
+						processRequest(client, address)
+				except socket.timeout:
+					pass
+	
+	listenThread = Thread(target=processClients, daemon=True)
+	listenThread.start()
+	listenThread.join()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if __name__ == '__main__':
+	args = sys.argv[1:]
+	port = 3100
+	name = "195048,195178"
+	for arg in args:
+		if arg.startswith('-name='):
+			name = str(arg[len('-name='):])
+		else : 
+			port = int(arg)
+	inscription(port,name)
+	listenForRequests(port)

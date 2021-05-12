@@ -1,12 +1,8 @@
 import socket 
-import json
-import time
-from threading import Thread, Timer
+from threading import Thread
 import sys
 import IA
 import jsonNetwork 
-import random
-
 
 s = socket.socket()
 s.connect(('127.0.0.1',3000))
