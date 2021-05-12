@@ -51,7 +51,7 @@ def processRequest(client,address):
 		if getPlayerColor(state,name) == 'black' :
 			_, move = IA.negamaxfinal(state,'black')
 		else :
-			_, move = IA.negamaxfinal(state,'white')
+			move = IA.randomWhiteMove(state)
 		print(state)
 		print(move[0])
 		print(move[1])
@@ -61,7 +61,7 @@ def processRequest(client,address):
 		"marbles": move[0],
 		"direction": move[1]
 		},
-		"message": "Fun message"
+		"message": "I am a robot"
 		}
 		)
 			

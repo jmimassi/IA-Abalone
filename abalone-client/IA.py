@@ -442,18 +442,19 @@ def moveMarblesTrain2(state, marbles, direction):
 		pass
 	# print(marbles,computeAlignement(marbles),direction)
 	if dest1 == 'X':
-		return state['board'], False
-	if  dest1 == 'W' and str(computeAlignement(marbles)) != str(direction) : 
-		return state['board'], False
-	if dest1 == 'B' and str(computeAlignement(marbles)) != direction :
-		return state['board'], False
+		return state['board'], 'A'
+	if  dest1 == 'W' and str(computeAlignement(marbles)) != str(direction) and str(computeAlignement(marbles)) != str(opposite[direction]) : 
+		return state['board'], 'B'
+	if dest1 == 'B' and str(computeAlignement(marbles)) != str(direction) and str(computeAlignement(marbles)) != str(opposite[direction]) :
+		return state['board'], 'C'
+	
 	if dest2 == 'X':
-		return state['board'], False
+		return state['board'], 'D'
 	# print(dest1)
 	if  dest2 == 'W' and (li1,ci1) != (ld2,cd2) :
-		return state['board'], False
+		return state['board'], 'E'
 	if  dest2 == 'B' and (li1,ci1) != (ld2,cd2)  :
-		return state['board'], False
+		return state['board'], 'f'
 	try :
 		if  dest3 == 'W' and (li2,ci2) != (ld3,cd3) :
 			return state['board'], False
@@ -463,6 +464,11 @@ def moveMarblesTrain2(state, marbles, direction):
 		if  dest3 == 'B' and (li2,ci2) != (ld3,cd3)  :
 			return state['board'], False
 	except :
+		pass
+	try : 
+		if dest3 == 'X' :
+			return state['board'], False
+	except : 
 		pass
 	
 
@@ -627,24 +633,23 @@ def timeit(fun):
 		return res
 	return wrapper
 
-def heurestic(state,player):#prendre en compte la win 
+def heurestic(state,player):
 	game , winner = gameOver(state)
 	if game :
 		if winner == player :
-			return 10000
-		return -10000
+			return 1000000
+		return -1000000
 	white, black = posofmarbles(state['board'])
 	whites = 0
 	blacks = 0
 	if player == 'black':
 		for elem in black :
 			blacks += distancefromcenter(elem)
-		return blacks
+		return -(blacks - 100*(len(black)-len(white)))
 	else : 
 		for elem in white : 
 			whites += distancefromcenter(elem)
-		return whites
-
+		return -(whites - 100*(len(white)-len(black)))
 
 
 
@@ -668,12 +673,27 @@ state = {
 			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'X'],
 			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
 			['X', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
-			['X', 'X', 'E', 'E', 'B', 'B', 'B', 'E', 'E'],
+			['X', 'X', 'E', 'E', 'B', 'B', 'B', 'B', 'W'],
 			['X', 'X', 'X', 'B', 'B', 'B', 'B', 'B', 'B'],
 			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
 		]
 	}
 
+stateclean = {
+		'players': 'a',
+		'current': 0,
+		'board': [
+			['W', 'W', 'W', 'W', 'W', 'X', 'X', 'X', 'X'],
+			['W', 'W', 'W', 'W', 'W', 'W', 'X', 'X', 'X'],
+			['E', 'E', 'W', 'W', 'W', 'E', 'E', 'X', 'X'],
+			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'X'],
+			['E', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
+			['X', 'E', 'E', 'E', 'E', 'E', 'E', 'E', 'E'],
+			['X', 'X', 'E', 'E', 'B', 'B', 'B', 'E', 'E'],
+			['X', 'X', 'X', 'B', 'B', 'B', 'B', 'B', 'B'],
+			['X', 'X', 'X', 'X', 'B', 'B', 'B', 'B', 'B']
+		]
+	}
 
 
 # for elem in allBlackMoves(state2) : 
@@ -731,7 +751,7 @@ def negamaxfinal(state,player,timeout = 2.85):
 	over = False
 	oldvalue = 0 
 	oldmove = None
-	while value > -10000 and time.time() - start < timeout and not over :
+	while value > -1000000 and time.time() - start < timeout and not over :
 		value, move, over = cachedNegamaxWithPruningLimitedDepth(state,player,depth)
 		if (value, move) != (float('inf'),None) : 
 			oldvalue = value
@@ -745,3 +765,34 @@ def wrapperbis(*args,fun = negamaxfinal):
 	return negamaxfinal(*args)
 
 
+state3 = {
+		'players': 'a',
+		'current': 0,
+		'board': [	
+		['W', 'E', 'E', 'E', 'E', 'X', 'X', 'X', 'X'],
+ 		['W', 'W', 'E', 'W', 'E', 'E', 'X', 'X', 'X'],
+		['W', 'W', 'E', 'W', 'W', 'E', 'W', 'X', 'X'], 
+		['E', 'W', 'E', 'B', 'B', 'B', 'E', 'W', 'X'], 
+		['W', 'W', 'B', 'B', 'B', 'B', 'B', 'W', 'E'], 
+		['X', 'E', 'B', 'B', 'B', 'B', 'E', 'E', 'E'],
+		['X', 'X', 'E', 'B', 'B', 'E', 'E', 'E', 'E'],
+		['X', 'X', 'X', 'E', 'E', 'E', 'E', 'E', 'E'],
+		['X', 'X', 'X', 'X', 'E', 'E', 'E', 'E', 'E']]
+	}
+	
+# print(moveMarblesTrain(state3,[[4,2],[4,3],[4,4]],'W'))
+
+# for elem in allBlackMoves(state3) : 
+# 	print(elem)
+	# tab = apply(state3,elem)
+	# w , b = posofmarbles(tab['board'])
+	# print(w,b)
+	# if len(w) != len(b) :
+	# 	print('ok')
+
+
+# print(possmoves2(state3,[[4, 3], [4, 2], [4, 4]]))
+
+
+# print(moveMarblesTrain2(state3,[[4, 3], [4, 2], [4, 4]],'W'))
+# print(computeAlignement([[4, 3], [4, 2], [4, 4]]))
